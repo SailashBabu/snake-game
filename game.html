@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Snake Game</h1>
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <button id="playAgainButton" style="display: none;">Play Again</button>
+</div>
+  
+
+  <script src="script.js"></script>
+</body>
+<style>
+    #playAgainButton {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 1.2rem;
+  background-color: lime;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+#playAgainButton:hover {
+  background-color: darkgreen;
+  color: white;
+}
+
+    /* style.css */
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  background-color: #f0f0f0;
+}
+.button{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 50px;
+}
+
+h1 {
+  position: absolute;
+  top: 20px;
+  text-align: center;
+  color: #333;
+  font-size: 2rem;
+}
+
+#gameContainer {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  background-color: #000;
+  border: 2px solid #fff;
+}
+
+canvas {
+  display: block;
+}
+
+</style>
+<script>
+    // script.js
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const playAgainButton = document.getElementById('playAgainButton');
+
+
+// Game settings
+const gridSize = 20;
+const canvasSize = 400;
+const initialSnakeLength = 1;
+const snakeColor = 'lime';
+const foodColor = 'red';
+
+let snake = [];
+let food = {};
+let direction = 'right';
+let isGameOver = false;
+
+// Initialize the game
+function initGame() {
+  snake = [];
+  for (let i = initialSnakeLength - 1; i >= 0; i--) {
+    snake.push({ x: i, y: 0 });
+  }
+
+  direction = 'right';
+  spawnFood();
+  isGameOver = false;
+  playAgainButton.style.display = 'none'; // Hide "Play Again" button
+
+  gameLoop();
+}
+
+// Spawn food at a random position
+function spawnFood() {
+  food = {
+    x: Math.floor(Math.random() * (canvasSize / gridSize)),
+    y: Math.floor(Math.random() * (canvasSize / gridSize)),
+  };
+}
+
+// Draw the snake on the canvas
+function drawSnake() {
+  ctx.fillStyle = snakeColor;
+  snake.forEach(segment => {
+    ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+  });
+}
+
+// Draw the food on the canvas
+function drawFood() {
+  ctx.fillStyle = foodColor;
+  ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+}
+
+// Clear the canvas
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvasSize, canvasSize);
+}
+
+// Move the snake
+function moveSnake() {
+  let head = { ...snake[0] };
+
+  switch (direction) {
+    case 'right':
+      head.x++;
+      break;
+    case 'left':
+      head.x--;
+      break;
+    case 'up':
+      head.y--;
+      break;
+    case 'down':
+      head.y++;
+      break;
+  }
+
+  // Check if the snake collides with walls or itself
+  if (
+    head.x < 0 || head.x >= canvasSize / gridSize || 
+    head.y < 0 || head.y >= canvasSize / gridSize ||
+    snake.some(segment => segment.x === head.x && segment.y === head.y)
+  ) {
+    isGameOver = true;
+  }
+
+  snake.unshift(head);
+
+  // Check if the snake eats the food
+  if (head.x === food.x && head.y === food.y) {
+    spawnFood(); // spawn new food
+  } else {
+    snake.pop(); // remove tail
+  }
+}
+
+// Handle keyboard input for snake direction
+function changeDirection(event) {
+  if (event.key === 'ArrowUp' && direction !== 'down') {
+    direction = 'up';
+  } else if (event.key === 'ArrowDown' && direction !== 'up') {
+    direction = 'down';
+  } else if (event.key === 'ArrowLeft' && direction !== 'right') {
+    direction = 'left';
+  } else if (event.key === 'ArrowRight' && direction !== 'left') {
+    direction = 'right';
+  }
+}
+
+// Display the game over screen
+function displayGameOver() {
+  ctx.fillStyle = 'white';
+  ctx.font = '30px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Game Over!', canvasSize / 2, canvasSize / 2);
+  playAgainButton.style.display = 'inline-block';
+}
+
+// Main game loop
+function gameLoop() {
+  if (isGameOver) {
+    displayGameOver();
+    return;
+  }
+
+  clearCanvas();
+  moveSnake();
+  drawSnake();
+  drawFood();
+
+  setTimeout(gameLoop, 100);
+}
+
+// Start the game
+initGame();
+
+// Event listener for keyboard input
+document.addEventListener('keydown', changeDirection);
+playAgainButton.addEventListener('click', () => {
+  initGame(); // Restart the game
+});
+</script>
+</html>
